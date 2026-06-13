@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!-- saved from url=(0049)file:///Users/atilataitelbaum/Downloads/test.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="./test_files/chart.umd.min.js"></script>
+</head>
+<body>
+<h3>Test items: debería mostrar 1</h3>
+<div id="ic"><div id="i1">Item 1</div></div>
+<button onclick="addItem()">+ Agregar</button>
+
+<h3>Test gráfico</h3>
+<button onclick="showChart()">Mostrar gráfico</button>
+<div id="tab-estado" style="display:none">
+  <div id="cw" style="position:relative;height:400px">
+    <canvas id="myChart"></canvas>
+  </div>
+</div>
+
+<script>
+let iid = 0;
+let chart = null;
+
+function addItem() {
+  iid++;
+  const n = iid;
+  const div = document.createElement('div');
+  div.id = 'i' + n;
+  div.textContent = 'Item ' + n;
+  document.getElementById('ic').appendChild(div);
+}
+
+function showChart() {
+  const tab = document.getElementById('tab-estado');
+  tab.style.display = 'block';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const cw = document.getElementById('cw');
+    cw.innerHTML = '<canvas id="myChart" style="width:100%;height:100%"></canvas>';
+    const canvas = document.getElementById('myChart');
+    console.log('canvas size:', canvas.offsetWidth, canvas.offsetHeight, cw.offsetWidth, cw.offsetHeight);
+    if (chart) { chart.destroy(); chart = null; }
+    chart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: ['PAULINA','LUIS','COHEN'],
+        datasets: [
+          { label:'Entregado', data:[38480000,25200000,23310000], backgroundColor:'#1D9E75' },
+          { label:'Pagado', data:[18515555,14200000,4700358], backgroundColor:'#378ADD' },
+        ]
+      },
+      options: { indexAxis:'y', responsive:true, maintainAspectRatio:false }
+    });
+    console.log('chart created', chart);
+  }));
+}
+
+// Init: solo 1 item
+addItem();
+console.log('items after init:', document.getElementById('ic').children.length);
+</script>
+
+
+</body></html>
