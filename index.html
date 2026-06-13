@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<!-- saved from url=(0052)file:///Users/atilataitelbaum/Downloads/index_5.html -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de Talleres</title>
+<script src="./index_files/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #ffffff; --bg2: #f5f5f3; --bg3: #ededeb;
+  --text: #1a1a18; --text2: #6b6b67; --text3: #9a9a96;
+  --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+  --green: #085041; --green-bg: #E1F5EE; --green-mid: #1D9E75;
+  --blue: #0C447C; --blue-bg: #E6F1FB; --blue-mid: #378ADD;
+  --red: #A32D2D; --red-bg: #FCEBEB; --red-mid: #E24B4A;
+  --amber-bg: #FAEEDA; --amber-text: #633806;
+  --gray-bg: #F1EFE8; --gray-text: #444441;
+  --radius: 8px; --radius-lg: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1a; --bg2: #252523; --bg3: #2e2e2b;
+    --text: #f0f0ec; --text2: #a0a09c; --text3: #6b6b67;
+    --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+    --green: #9FE1CB; --green-bg: #04342C; --green-mid: #1D9E75;
+    --blue: #B5D4F4; --blue-bg: #042C53; --blue-mid: #378ADD;
+    --red: #F7C1C1; --red-bg: #501313; --red-mid: #E24B4A;
+    --amber-bg: #412402; --amber-text: #FAC775;
+    --gray-bg: #2C2C2A; --gray-text: #D3D1C7;
+  }
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.5; }
+.app-shell { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+.app-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+h1 { font-size: 20px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+h1 span { font-size: 13px; font-weight: 400; color: var(--text2); }
+.sync-status { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 6px; }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green-mid); }
+.sync-dot.loading { background: var(--amber-text); animation: pulse 1s infinite; }
+.sync-dot.error { background: var(--red-mid); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.tabs { display: flex; gap: 0; background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 4px; margin-bottom: 1.5rem; }
+.tab { flex: 1; padding: 8px 12px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: none; color: var(--text2); border-radius: var(--radius); transition: all 0.15s; }
+.tab.active { background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.tab:hover:not(.active) { color: var(--text); }
+.section { display: none; }
+.section.active { display: block; }
+.card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+.card-title { font-size: 11px; font-weight: 600; color: var(--text2); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.form-row { display: grid; gap: 12px; margin-bottom: 12px; }
+.form-row.c2 { grid-template-columns: 1fr 1fr; }
+.form-row.c3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-row.c1 { grid-template-columns: 1fr; }
+label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; }
+input, select { width: 100%; padding: 8px 10px; font-size: 13px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: inherit; outline: none; transition: border-color 0.15s; }
+input:focus, select:focus { border-color: var(--blue-mid); box-shadow: 0 0 0 2px rgba(55,138,221,0.15); }
+.tipo-toggle { display: flex; background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.25rem; }
+.tipo-btn { flex: 1; padding: 9px 12px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; background: transparent; color: var(--text2); transition: all 0.15s; }
+.tipo-btn.active { background: var(--text); color: var(--bg); }
+.btn-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1rem; }
+.btn { padding: 8px 18px; border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; border: 0.5px solid var(--border2); background: transparent; color: var(--text); font-family: inherit; transition: all 0.15s; }
+.btn:hover { background: var(--bg2); }
+.btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+.btn.primary:hover { opacity: 0.85; }
+.btn.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.danger { color: var(--red-mid); border-color: var(--red-mid); }
+.btn.danger:hover { background: var(--red-bg); }
+.sort-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+.total-preview { background: var(--bg2); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; color: var(--text2); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+.total-preview strong { font-size: 16px; font-weight: 500; color: var(--text); }
+.badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+.badge-e { background: var(--green-bg); color: var(--green); }
+.badge-p { background: var(--blue-bg); color: var(--blue); }
+.badge-i { background: var(--amber-bg); color: var(--amber-text); }
+.badge-n { background: var(--gray-bg); color: var(--gray-text); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600; color: var(--text2); border-bottom: 0.5px solid var(--border); text-transform: uppercase; letter-spacing: 0.04em; }
+td { padding: 8px 12px; border-bottom: 0.5px solid var(--border); color: var(--text); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg2); }
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+.metric { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; }
+.metric-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.metric-value { font-size: 20px; font-weight: 500; }
+.metric-value.g { color: var(--green-mid); }
+.metric-value.r { color: var(--red-mid); }
+.filter-bar { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+.filter-bar select { width: auto; flex: 1; min-width: 140px; }
+.legend { display: flex; gap: 16px; margin-bottom: 12px; font-size: 12px; color: var(--text2); flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.taller-sel { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+.taller-sel label { font-size: 13px; color: var(--text2); margin: 0; white-space: nowrap; }
+.taller-sel select { max-width: 300px; }
+.pct-bar-bg { background: var(--bg3); border-radius: 4px; height: 6px; width: 80px; display: inline-block; vertical-align: middle; overflow: hidden; }
+.pct-bar-fill { height: 100%; background: var(--blue-mid); border-radius: 4px; }
+.section-header { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+.loading-overlay { text-align: center; padding: 3rem; color: var(--text3); font-size: 13px; }
+.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border2); border-top-color: var(--blue-mid); border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 20px; border-radius: var(--radius); font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 9999; white-space: nowrap; }
+.toast.show { opacity: 1; }
+.empty { text-align: center; padding: 2.5rem; color: var(--text3); font-size: 13px; }
+@media (max-width: 600px) {
+  .form-row.c2, .form-row.c3 { grid-template-columns: 1fr; }
+  .metric-grid { grid-template-columns: 1fr 1fr; }
+  .metric-grid .metric:last-child { grid-column: span 2; }
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="app-header">
+    <h1>Gestión de Talleres <span>2026</span></h1>
+    <div class="sync-status">
+      <div class="sync-dot loading" id="sync-dot"></div>
+      <span id="sync-label">Conectando...</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(&#39;carga&#39;)">＋ Cargar</button>
+    <button class="tab" onclick="switchTab(&#39;movimientos&#39;)">≡ Movimientos</button>
+    <button class="tab" onclick="switchTab(&#39;estado&#39;)">▦ Estado</button>
+  </div>
+
+  <!-- CARGA -->
+  <div id="tab-carga" class="section active">
+    <div class="tipo-toggle">
+      <button class="tipo-btn active" onclick="setTipo(&#39;entrega&#39;)">↑ Entrega de taller</button>
+      <button class="tipo-btn" onclick="setTipo(&#39;pago&#39;)">$ Pago a taller</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Datos del movimiento</div>
+      <div class="form-row c2">
+        <div>
+          <label>Taller</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="f-taller" style="flex:1"></select>
+            <button class="btn" onclick="agregarTaller()" title="Agregar nuevo taller" style="padding:7px 10px;font-size:12px;white-space:nowrap;flex-shrink:0">+ Nuevo</button>
+          </div>
+        </div>
+        <div><label>Fecha</label><input type="date" id="f-fecha"></div>
+      </div>
+
+      <div id="entrega-fields">
+        <div class="form-row c2">
+          <div><label>Nac / Impo</label>
+            <select id="f-nacimpo">
+              <option value="NACIONAL">Nacional</option>
+              <option value="IMPO">Importado</option>
+            </select>
+          </div>
+          <div><label>Nro remito</label><input type="text" id="f-remito" placeholder="Ej: 12345"></div>
+        </div>
+
+        <div id="items-container"></div>
+
+        <button class="btn" onclick="agregarItem()" style="font-size:12px;margin-bottom:1rem">+ Agregar ítem</button>
+
+        <div class="total-preview">
+          <span>Total entregado:</span>
+          <strong id="total-calc">$0</strong>
+        </div>
+        <div class="form-row c1"><div><label>Comentarios</label><input type="text" id="f-com-e" placeholder="Opcional"></div></div>
+      </div>
+
+      <div id="pago-fields" style="display:none">
+        <div class="form-row c2">
+          <div><label>Monto pagado ($)</label><input type="number" id="f-monto" placeholder="0" min="0"></div>
+          <div><label>Nro factura</label><input type="text" id="f-factura" placeholder="Opcional"></div>
+        </div>
+        <div class="form-row c1"><div><label>Comentarios</label><input type="text" id="f-com-p" placeholder="Ej: Cheque número xxx"></div></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" onclick="clearForm()">Limpiar</button>
+        <button class="btn primary" id="btn-guardar" onclick="guardar()">✓ Guardar en Sheets</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOVIMIENTOS -->
+  <div id="tab-movimientos" class="section">
+    <div class="filter-bar">
+      <select id="fil-taller" onchange="renderMovs()"><option value="">Todos los talleres</option></select>
+      <select id="fil-tipo" onchange="renderMovs()">
+        <option value="">Todos los tipos</option>
+        <option value="entrega">Entregas</option>
+        <option value="pago">Pagos</option>
+      </select>
+      <button class="btn" onclick="cargarDesdeSheets()">↻ Actualizar</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead><tr><th>Fecha</th><th>Taller</th><th>Tipo</th><th>Detalle / Comentario</th><th style="text-align:right">Monto</th><th>Nac/Imp</th><th></th></tr></thead>
+        <tbody id="movs-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ESTADO -->
+  <div id="tab-estado" class="section">
+    <div class="metric-grid" id="totales-globales"></div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+      <div class="section-header" style="margin-bottom:0">Resumen por taller</div>
+      <div style="display:flex;gap:4px">
+        <button class="btn sort-btn active" onclick="setOrden(&#39;pendiente&#39;)" id="sort-pendiente" style="padding:5px 10px;font-size:11px">↓ Deuda</button>
+        <button class="btn sort-btn" onclick="setOrden(&#39;entregado&#39;)" id="sort-entregado" style="padding:5px 10px;font-size:11px">↓ Entregado</button>
+        <button class="btn sort-btn" onclick="setOrden(&#39;alfa&#39;)" id="sort-alfa" style="padding:5px 10px;font-size:11px">A→Z</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:1.5rem">
+      <table>
+        <thead>
+          <tr>
+            <th>Taller</th>
+            <th style="text-align:right">Unidades</th>
+            <th style="text-align:right">Entregado</th>
+            <th style="text-align:right">Pagado</th>
+            <th style="text-align:right">Pendiente</th>
+          </tr>
+        </thead>
+        <tbody id="resumen-body"></tbody>
+        <tfoot id="resumen-foot"></tfoot>
+      </table>
+    </div>
+
+    <div class="taller-sel">
+      <label>Ver taller:</label>
+      <select id="sel-taller-e" onchange="renderEstado()"></select>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#1D9E75"></span>Entregado</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#378ADD"></span>Pagado</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#E24B4A"></span>Pendiente</span>
+    </div>
+    <div class="card" id="chart-card">
+      <div id="chart-wrap" style="position:relative;width:100%;height:500px">
+        <canvas id="estadoChart" style="display:block;width:100%;height:100%" role="img" aria-label="Gráfico de estado por taller"></canvas>
+      </div>
+    </div>
+    <div class="section-header" style="margin-top:1.5rem">Detalle por taller</div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead><tr><th>Taller</th><th style="text-align:right">Entregado</th><th style="text-align:right">Pagado</th><th style="text-align:right">Pendiente</th><th style="text-align:right">% pagado</th></tr></thead>
+        <tbody id="tabla-estado"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxB1gaeHBWkM27v7eXT-XlEIMVATvBr_gknQtJu5HBo_am6OXzc2NAcx20clgTWYa5hQ/exec';
+const TALLERES = ['PAULINA','LUIS','COHEN','SEBASTIAN','NANCY - IMP','ESTEFI','YANI','TEXPIMA - IMP','VIRU','SHOES AND BAGS','ROMINA','PAOLA','NEO DENIM','JOYFULL - IMP','FDB - IMP'];
+
+let movimientos = [];
+let chartInstance = null;
+let tipoActivo = 'entrega';
+
+function fmt(n) {
+  return '$' + Math.round(n).toLocaleString('es-AR');
+}
+
+function setSyncStatus(state, label) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot' + (state === 'loading' ? ' loading' : state === 'error' ? ' error' : '');
+  lbl.textContent = label;
+}
+
+async function apiGet(action) {
+  const res = await fetch(`${SCRIPT_URL}?action=${action}`);
+  return res.json();
+}
+
+async function apiPost(body) {
+  const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+async function cargarDesdeSheets() {
+  setSyncStatus('loading', 'Cargando...');
+  try {
+    const data = await apiGet('getMovimientos');
+    if (data.ok) {
+      movimientos = data.movimientos;
+      setSyncStatus('ok', 'Sincronizado con Sheets');
+      renderMovs();
+      if (document.getElementById('tab-estado').classList.contains('active')) renderEstado();
+      toast('Datos actualizados ✓');
+    } else {
+      throw new Error(data.error || 'Error desconocido');
+    }
+  } catch(e) {
+    setSyncStatus('error', 'Error de conexión');
+    toast('Error al conectar con Google Sheets');
+    console.error(e);
+  }
+}
+
+function agregarTaller() {
+  const nombre = prompt('Nombre del nuevo taller:');
+  if (!nombre || !nombre.trim()) return;
+  const nombreLimpio = nombre.trim().toUpperCase();
+  if (TALLERES.includes(nombreLimpio)) {
+    toast('Ese taller ya existe en la lista');
+    document.getElementById('f-taller').value = nombreLimpio;
+    return;
+  }
+  TALLERES.push(nombreLimpio);
+  initSelects();
+  document.getElementById('f-taller').value = nombreLimpio;
+  toast('Taller "' + nombreLimpio + '" agregado ✓');
+}
+
+function initSelects() {
+  ['f-taller','fil-taller','sel-taller-e'].forEach(id => {
+    const el = document.getElementById(id);
+    const isFilter = id !== 'f-taller';
+    el.innerHTML = isFilter ? '<option value="">Todos los talleres</option>' : '';
+    TALLERES.forEach(t => {
+      const o = document.createElement('option');
+      o.value = t; o.textContent = t;
+      el.appendChild(o);
+    });
+  });
+  document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
+}
+
+function switchTab(tab) {
+  ['carga','movimientos','estado'].forEach((t,i) => {
+    document.querySelectorAll('.tab')[i].classList.toggle('active', t === tab);
+    document.getElementById('tab-'+t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'estado') renderEstado();
+  if (tab === 'movimientos') renderMovs();
+}
+
+function setTipo(tipo) {
+  tipoActivo = tipo;
+  document.querySelectorAll('.tipo-btn').forEach((b,i) => b.classList.toggle('active', i === (tipo==='entrega'?0:1)));
+  document.getElementById('entrega-fields').style.display = tipo === 'entrega' ? 'block' : 'none';
+  document.getElementById('pago-fields').style.display = tipo === 'pago' ? 'block' : 'none';
+}
+
+let itemCount = 0;
+
+function agregarItem() {
+  itemCount++;
+  const id = itemCount;
+  const container = document.getElementById('items-container');
+  const div = document.createElement('div');
+  div.id = 'item-' + id;
+  div.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px';
+  div.innerHTML = `
+    <div><label>Detalle</label><input type="text" id="det-${id}" placeholder="Ej: Jean xxx"></div>
+    <div><label>Cantidad</label><input type="number" id="cant-${id}" placeholder="0" min="0" oninput="calcTotal()"></div>
+    <div><label>Precio unitario ($)</label><input type="number" id="prec-${id}" placeholder="0" min="0" oninput="calcTotal()"></div>
+    <div style="padding-bottom:1px">${id > 1 ? `<button class="btn danger" onclick="quitarItem(${id})" style="padding:7px 10px;font-size:12px" title="Quitar ítem">✕</button>` : '<div style="width:36px"></div>'}</div>
+  `;
+  container.appendChild(div);
+  calcTotal();
+}
+
+function quitarItem(id) {
+  const el = document.getElementById('item-' + id);
+  if (el) el.remove();
+  calcTotal();
+}
+
+function calcTotal() {
+  let total = 0;
+  document.getElementById('items-container').querySelectorAll('[id^="cant-"]').forEach(el => {
+    const id = el.id.replace('cant-','');
+    const c = parseFloat(el.value)||0;
+    const p = parseFloat(document.getElementById('prec-'+id).value)||0;
+    total += c * p;
+  });
+  document.getElementById('total-calc').textContent = fmt(total);
+}
+
+function clearForm() {
+  ['f-remito','f-com-e','f-factura','f-com-p'].forEach(id => document.getElementById(id).value='');
+  ['f-monto'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('items-container').innerHTML = '';
+  itemCount = 0;
+  agregarItem();
+  document.getElementById('total-calc').textContent = '$0';
+}
+
+async function guardar() {
+  const taller = document.getElementById('f-taller').value;
+  const fecha = document.getElementById('f-fecha').value;
+  if (!taller || !fecha) { toast('Completá el taller y la fecha'); return; }
+
+  let mov;
+  if (tipoActivo === 'entrega') {
+    const items = [];
+    document.getElementById('items-container').querySelectorAll('[id^="cant-"]').forEach(el => {
+      const id = el.id.replace('cant-','');
+      const cantidad = parseFloat(el.value)||0;
+      const precio = parseFloat(document.getElementById('prec-'+id).value)||0;
+      const detalle = document.getElementById('det-'+id).value;
+      if (cantidad && precio) items.push({ cantidad, precio, detalle, total: cantidad*precio });
+    });
+    if (!items.length) { toast('Ingresá al menos un ítem con cantidad y precio'); return; }
+
+    const btn = document.getElementById('btn-guardar');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+    setSyncStatus('loading', 'Guardando...');
+
+    const nacImpo = document.getElementById('f-nacimpo').value;
+    const remito = document.getElementById('f-remito').value;
+    const comentario = document.getElementById('f-com-e').value;
+
+    try {
+      for (const item of items) {
+        const mov = { tipo:'entrega', fecha, taller, nacImpo, remito, detalle: item.detalle, cantidad: item.cantidad, precio: item.precio, total: item.total, comentario };
+        const res = await apiPost({ action: 'addMovimiento', movimiento: mov });
+        if (res.ok) movimientos.push({ ...mov, rowIndex: res.rowIndex });
+        else throw new Error(res.error);
+      }
+      clearForm();
+      setSyncStatus('ok', 'Sincronizado con Sheets');
+      toast(items.length > 1 ? `${items.length} ítems guardados en Sheets ✓` : 'Guardado en Google Sheets ✓');
+    } catch(e) {
+      setSyncStatus('error', 'Error al guardar');
+      toast('Error al guardar en Sheets');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '✓ Guardar en Sheets';
+    }
+    return;
+  } else {
+    const monto = parseFloat(document.getElementById('f-monto').value)||0;
+    if (!monto) { toast('Ingresá el monto pagado'); return; }
+    mov = {
+      tipo:'pago', fecha, taller, monto,
+      factura: document.getElementById('f-factura').value,
+      comentario: document.getElementById('f-com-p').value
+    };
+  }
+
+  const btn = document.getElementById('btn-guardar');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+  setSyncStatus('loading', 'Guardando...');
+
+  try {
+    const res = await apiPost({ action: 'addMovimiento', movimiento: mov });
+    if (res.ok) {
+      movimientos.push({ ...mov, rowIndex: res.rowIndex });
+      clearForm();
+      setSyncStatus('ok', 'Sincronizado con Sheets');
+      toast('Guardado en Google Sheets ✓');
+    } else {
+      throw new Error(res.error);
+    }
+  } catch(e) {
+    setSyncStatus('error', 'Error al guardar');
+    toast('Error al guardar en Sheets');
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✓ Guardar en Sheets';
+  }
+}
+
+function renderMovs() {
+  const filT = document.getElementById('fil-taller').value;
+  const filTipo = document.getElementById('fil-tipo').value;
+  const filtered = movimientos
+    .filter(m => (!filT || m.taller === filT) && (!filTipo || m.tipo === filTipo))
+    .slice().sort((a,b) => b.fecha.localeCompare(a.fecha));
+
+  const tbody = document.getElementById('movs-body');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Sin movimientos registrados</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(m => {
+    const monto = m.tipo==='entrega' ? fmt(m.total) : fmt(m.monto);
+    const tipoBadge = m.tipo==='entrega'
+      ? '<span class="badge badge-e">Entrega</span>'
+      : '<span class="badge badge-p">Pago</span>';
+    const niBadge = m.nacImpo
+      ? (m.nacImpo==='IMPO' ? '<span class="badge badge-i">Impo</span>' : '<span class="badge badge-n">Nac</span>')
+      : '-';
+    const det = m.tipo==='entrega'
+      ? [m.detalle, m.remito].filter(Boolean).join(' / ') || '-'
+      : (m.comentario||'-');
+    return `<tr>
+      <td>${m.fecha}</td>
+      <td><strong>${m.taller}</strong></td>
+      <td>${tipoBadge}</td>
+      <td style="color:var(--text2)">${det}</td>
+      <td style="text-align:right;font-weight:500">${monto}</td>
+      <td>${niBadge}</td>
+      <td><button class="btn danger" style="padding:3px 10px;font-size:11px" onclick="eliminarMovimiento(${m.rowIndex}, this)">✕ Anular</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function eliminarMovimiento(rowIndex, btn) {
+  if (!confirm('¿Anular este movimiento? Se eliminará de Google Sheets.')) return;
+  btn.disabled = true;
+  btn.textContent = '...';
+  setSyncStatus('loading', 'Anulando...');
+  try {
+    const res = await apiPost({ action: 'deleteMovimiento', rowIndex });
+    if (res.ok) {
+      movimientos = movimientos.filter(m => m.rowIndex !== rowIndex);
+      setSyncStatus('ok', 'Sincronizado con Sheets');
+      toast('Movimiento anulado ✓');
+      renderMovs();
+    } else {
+      throw new Error(res.error);
+    }
+  } catch(e) {
+    setSyncStatus('error', 'Error al anular');
+    toast('Error al anular el movimiento');
+    btn.disabled = false;
+    btn.textContent = '✕ Anular';
+  }
+}
+
+function calcTaller(taller) {
+  const movs = taller === '__todos__' ? movimientos : movimientos.filter(m => m.taller === taller);
+  const entregado = movs.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+(m.total||0),0);
+  const pagado = movs.filter(m=>m.tipo==='pago').reduce((a,m)=>a+(m.monto||0),0);
+  return { entregado, pagado, pendiente: Math.max(0, entregado-pagado) };
+}
+
+function calcUnidades(taller) {
+  const movs = taller === '__todos__' ? movimientos : movimientos.filter(m => m.taller === taller);
+  return movs.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+(m.cantidad||0),0);
+}
+
+let ordenActual = 'pendiente';
+let ordenDir = 'desc';
+
+function setOrden(orden) {
+  if (ordenActual === orden) {
+    ordenDir = ordenDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    ordenActual = orden;
+    ordenDir = orden === 'alfa' ? 'asc' : 'desc';
+  }
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sort-' + orden).classList.add('active');
+  updateSortLabels();
+  renderEstado();
+}
+
+function updateSortLabels() {
+  const arrow = ordenDir === 'desc' ? '↓' : '↑';
+  const labels = { pendiente: 'Deuda', entregado: 'Entregado', alfa: ordenDir === 'asc' ? 'A→Z' : 'Z→A' };
+  ['pendiente','entregado','alfa'].forEach(k => {
+    const btn = document.getElementById('sort-' + k);
+    if (!btn) return;
+    if (k === 'alfa') btn.textContent = labels.alfa;
+    else btn.textContent = (ordenActual === k ? arrow : '↓') + ' ' + labels[k];
+  });
+}
+
+function renderEstado() {
+  const global = calcTaller('__todos__');
+  const totalUnidades = calcUnidades('__todos__');
+  document.getElementById('totales-globales').innerHTML = `
+    <div class="metric"><div class="metric-label">Total entregado</div><div class="metric-value">${fmt(global.entregado)}</div></div>
+    <div class="metric"><div class="metric-label">Total pagado</div><div class="metric-value g">${fmt(global.pagado)}</div></div>
+    <div class="metric"><div class="metric-label">Pendiente de pago</div><div class="metric-value r">${fmt(global.pendiente)}</div></div>
+  `;
+
+  // Resumen table
+  let resumenData = TALLERES.map(t => {
+    const d = calcTaller(t);
+    const u = calcUnidades(t);
+    return { taller: t, unidades: u, ...d };
+  }).filter(d => d.entregado > 0 || d.pagado > 0);
+
+  if (ordenActual === 'pendiente') resumenData.sort((a,b) => ordenDir === 'desc' ? b.pendiente - a.pendiente : a.pendiente - b.pendiente);
+  else if (ordenActual === 'entregado') resumenData.sort((a,b) => ordenDir === 'desc' ? b.entregado - a.entregado : a.entregado - b.entregado);
+  else resumenData.sort((a,b) => ordenDir === 'asc' ? a.taller.localeCompare(b.taller) : b.taller.localeCompare(a.taller));
+
+  const resumenRows = resumenData.map(d => `<tr>
+      <td><strong>${d.taller}</strong></td>
+      <td style="text-align:right">${d.unidades.toLocaleString('es-AR')}</td>
+      <td style="text-align:right">${fmt(d.entregado)}</td>
+      <td style="text-align:right;color:var(--green-mid)">${fmt(d.pagado)}</td>
+      <td style="text-align:right;color:var(--red-mid)">${fmt(d.pendiente)}</td>
+    </tr>`).join('');
+  document.getElementById('resumen-body').innerHTML = resumenRows;
+  document.getElementById('resumen-foot').innerHTML = `<tr style="border-top:1.5px solid var(--border2)">
+    <td><strong>Suma total</strong></td>
+    <td style="text-align:right"><strong>${totalUnidades.toLocaleString('es-AR')}</strong></td>
+    <td style="text-align:right"><strong>${fmt(global.entregado)}</strong></td>
+    <td style="text-align:right;color:var(--green-mid)"><strong>${fmt(global.pagado)}</strong></td>
+    <td style="text-align:right;color:var(--red-mid)"><strong>${fmt(global.pendiente)}</strong></td>
+  </tr>`;
+
+  const selVal = document.getElementById('sel-taller-e').value;
+  const mostrar = selVal ? [selVal] : TALLERES;
+  const datos = mostrar.map(t => ({ taller:t, ...calcTaller(t) })).filter(d => d.entregado>0||d.pagado>0);
+
+  const h = Math.max(220, datos.length * 52 + 80);
+  document.getElementById('chart-wrap').style.height = h + 'px';
+
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  const wrap = document.getElementById('chart-wrap');
+  const h = Math.max(300, datos.length * 52 + 80);
+  wrap.style.height = h + 'px';
+  wrap.innerHTML = '<canvas id="estadoChart" style="display:block;width:100%;height:100%" role="img" aria-label="Gráfico de estado por taller"></canvas>';
+  const canvas = document.getElementById('estadoChart');
+  canvas.width = wrap.offsetWidth;
+  canvas.height = h;
+  chartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: datos.map(d=>d.taller),
+      datasets: [
+        { label:'Entregado', data: datos.map(d=>d.entregado), backgroundColor:'#1D9E75', borderRadius:4 },
+        { label:'Pagado',    data: datos.map(d=>d.pagado),    backgroundColor:'#378ADD', borderRadius:4 },
+        { label:'Pendiente', data: datos.map(d=>d.pendiente), backgroundColor:'#E24B4A', borderRadius:4 },
+      ]
+    },
+    options: {
+      indexAxis:'y', responsive:false, maintainAspectRatio:false,
+      animation: false,
+      plugins: {
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label: c => ' '+c.dataset.label+': '+fmt(c.raw) } }
+      },
+      scales: {
+        x:{ ticks:{ callback: v=>'$'+(v/1000000).toFixed(1)+'M', font:{size:11} }, grid:{ color:'rgba(128,128,128,0.08)' } },
+        y:{ ticks:{ font:{size:11} }, grid:{ display:false } }
+      }
+    }
+  });
+
+  document.getElementById('tabla-estado').innerHTML = datos.map(d => {
+    const pct = d.entregado>0 ? Math.round(d.pagado/d.entregado*100) : 0;
+    return `<tr>
+      <td><strong>${d.taller}</strong></td>
+      <td style="text-align:right">${fmt(d.entregado)}</td>
+      <td style="text-align:right;color:var(--green-mid)">${fmt(d.pagado)}</td>
+      <td style="text-align:right;color:var(--red-mid)">${fmt(d.pendiente)}</td>
+      <td style="text-align:right">
+        <span style="margin-right:8px">${pct}%</span>
+        <span class="pct-bar-bg"><span class="pct-bar-fill" style="width:${Math.min(100,pct)}%"></span></span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+initSelects();
+agregarItem();
+cargarDesdeSheets();
+</script>
+
+
+</body></html>
