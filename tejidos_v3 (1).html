@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trazabilidad de Producción</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#fff;--bg2:#f5f5f3;--bg3:#ededeb;--text:#1a1a18;--text2:#6b6b67;--text3:#9a9a96;--border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);--green:#085041;--green-bg:#E1F5EE;--green-mid:#1D9E75;--blue:#0C447C;--blue-bg:#E6F1FB;--blue-mid:#378ADD;--red:#A32D2D;--red-bg:#FCEBEB;--red-mid:#E24B4A;--r:8px;--rl:12px}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;--text:#f0f0ec;--text2:#a0a09c;--text3:#6b6b67;--border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);--green:#9FE1CB;--green-bg:#04342C;--blue:#B5D4F4;--blue-bg:#042C53;--red:#F7C1C1;--red-bg:#501313}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh;font-size:15px;line-height:1.5}
+.shell{max-width:900px;margin:0 auto;padding:1.5rem 1rem 4rem}
+.app-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+h1{font-size:20px;font-weight:500}
+h1 span{font-size:13px;font-weight:400;color:var(--text2);margin-left:8px}
+.sync{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green-mid);flex-shrink:0}
+.dot.loading{background:#BA7517;animation:pulse 1s infinite}
+.dot.error{background:var(--red-mid)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.tabs{display:flex;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:4px;margin-bottom:1.5rem}
+.tab{flex:1;padding:8px 12px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text2);border-radius:var(--r)}
+.tab.active{background:var(--bg);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.section{display:none}
+.section.active{display:block}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.g1{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px}
+label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
+input,select{width:100%;padding:8px 10px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;outline:none}
+input:focus,select:focus{border-color:var(--blue-mid);box-shadow:0 0 0 2px rgba(55,138,221,0.15)}
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem}
+.btn{padding:8px 18px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid var(--border2);background:transparent;color:var(--text);font-family:inherit}
+.btn:hover{background:var(--bg2)}
+.btn.primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn.primary:hover{opacity:.85}
+.btn.primary:disabled{opacity:.5;cursor:not-allowed}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 20px;border-radius:var(--r);font-size:13px;font-weight:500;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999}
+.toast.show{opacity:1}
+.toast.error{background:var(--red-mid)}
+.toast.success{background:var(--green-mid)}
+.hidden{display:none}
+.info-box{background:var(--blue-bg);border-left:3px solid var(--blue-mid);color:var(--blue);padding:10px 12px;border-radius:var(--r);font-size:12px;margin-bottom:1rem}
+.talles-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:12px}
+.talle-input{display:flex;flex-direction:column}
+.talle-input label{margin-bottom:4px;font-size:11px}
+.talle-input input{padding:6px 8px}
+.spinner{border:2px solid var(--bg2);border-top:2px solid var(--text);border-radius:50%;width:20px;height:20px;animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+@media(max-width:600px){.g2{grid-template-columns:1fr}.shell{padding:1rem .75rem 2rem}.card{padding:1rem}.btn-row{flex-direction:column}.btn{width:100%}.talles-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="app-header">
+    <h1>📦 Trazabilidad <span>Producción</span></h1>
+    <div class="sync" id="status"><div class="dot loading"></div><span>Cargando...</span></div>
+  </div>
+  
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('ingreso')">↓ Ingreso a Proceso</button>
+    <button class="tab" onclick="switchTab('salida')">↑ Salida de Proceso</button>
+  </div>
+
+  <!-- TAB 1: INGRESO -->
+  <div id="tab-ingreso" class="section active">
+    <div class="card">
+      <div class="card-title">1. Identificación de la Orden</div>
+      <div class="info-box">Selecciona artículo y color</div>
+      <div class="g2">
+        <div>
+          <label>Artículo *</label>
+          <select id="ing-articulo" onchange="updateColores()" required>
+            <option value="">-- Seleccionar --</option>
+          </select>
+        </div>
+        <div>
+          <label>Color *</label>
+          <select id="ing-color" onchange="updateCodigo()" required>
+            <option value="">-- Seleccionar --</option>
+          </select>
+        </div>
+      </div>
+      <div class="g1">
+        <div>
+          <label>Código de Línea</label>
+          <input type="text" id="ing-codigo" readonly>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">2. Datos del Ingreso</div>
+      <div class="g2">
+        <div>
+          <label>Etapa *</label>
+          <select id="ing-etapa" required>
+            <option value="">-- Seleccionar --</option>
+          </select>
+        </div>
+        <div>
+          <label>Taller/Ubicación *</label>
+          <select id="ing-taller" required>
+            <option value="">-- Seleccionar --</option>
+            <option value="Interno">Interno</option>
+            <option value="Taller Lopez">Taller Lopez</option>
+            <option value="Taller Gimenez">Taller Gimenez</option>
+            <option value="Taller Interno Lavadero">Taller Interno Lavadero</option>
+          </select>
+        </div>
+      </div>
+      <div class="g2">
+        <div>
+          <label>Fecha de Ingreso *</label>
+          <input type="date" id="ing-fecha" required>
+        </div>
+        <div>
+          <label>Unidades Totales *</label>
+          <input type="number" id="ing-unidades" min="1" required>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">3. Curva de Talles (Opcional)</div>
+      <div class="info-box">Especifica cuántas unidades de cada talle</div>
+      <div class="talles-grid" id="talles-grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">4. Responsable</div>
+      <div class="g2">
+        <div>
+          <label>Responsable *</label>
+          <select id="ing-responsable" required>
+            <option value="">-- Seleccionar --</option>
+          </select>
+        </div>
+        <div style="align-self:flex-end">
+          <div style="display:flex;gap:8px">
+            <button class="btn" onclick="limpiarIngreso()">Limpiar</button>
+            <button class="btn primary" onclick="registrarIngreso()">✓ Registrar</button>
+          </div>
+        </div>
+      </div>
+      <div class="g1">
+        <div>
+          <label>Observaciones</label>
+          <input type="text" id="ing-obs" placeholder="Opcional">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: SALIDA -->
+  <div id="tab-salida" class="section">
+    <div class="card">
+      <div class="card-title">1. Seleccionar Movimiento</div>
+      <div class="g2">
+        <div>
+          <label>Código de Línea *</label>
+          <select id="sal-codigo" onchange="buscarMov()" required>
+            <option value="">-- Seleccionar --</option>
+          </select>
+        </div>
+        <div>
+          <label>Etapa *</label>
+          <select id="sal-etapa" onchange="buscarMov()" required>
+            <option value="">-- Seleccionar --</option>
+          </select>
+        </div>
+      </div>
+      <div id="mov-info" class="hidden card">
+        <div style="padding:0">
+          <label style="color:var(--text3)">Artículo:</label>
+          <div style="font-weight:600;margin-bottom:8px" id="mov-articulo">-</div>
+          <label style="color:var(--text3)">Color:</label>
+          <div style="font-weight:600;margin-bottom:8px" id="mov-color">-</div>
+          <label style="color:var(--text3)">Unidades:</label>
+          <div style="font-weight:600" id="mov-unidades">-</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">2. Datos de Salida</div>
+      <div class="g2">
+        <div>
+          <label>Fecha *</label>
+          <input type="date" id="sal-fecha" required>
+        </div>
+        <div>
+          <label>Unidades *</label>
+          <input type="number" id="sal-unidades" min="0" required>
+        </div>
+      </div>
+      <div class="g1">
+        <div>
+          <label>Talle (Opcional)</label>
+          <select id="sal-talle">
+            <option value="">-- Sin especificar --</option>
+            <option value="XS">XS</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+            <option value="XXL">XXL</option>
+          </select>
+        </div>
+      </div>
+      <div class="g2">
+        <div>
+          <label>Responsable *</label>
+          <select id="sal-responsable" required>
+            <option value="">-- Seleccionar --</option>
+          </select>
+        </div>
+        <div style="align-self:flex-end">
+          <div style="display:flex;gap:8px">
+            <button class="btn" onclick="limpiarSalida()">Limpiar</button>
+            <button class="btn primary" onclick="registrarSalida()">✓ Registrar</button>
+          </div>
+        </div>
+      </div>
+      <div class="g1">
+        <div>
+          <label>Observaciones</label>
+          <input type="text" id="sal-obs" placeholder="Opcional">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const URL = "https://script.google.com/macros/s/AKfycbyQAXLUh_9CUBj6XddpHvraBAYW0STJ4Eq6NesXgeoX7UYF_8vjD0eow8E0_dTZCJ8/exec";
+
+let app = {
+  articulos: [],
+  etapas: [],
+  responsables: [],
+  talles: [],
+  movimientos: []
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('ing-fecha').valueAsDate = new Date();
+  document.getElementById('sal-fecha').valueAsDate = new Date();
+  fetch(URL, { method: 'POST', body: JSON.stringify({ action: 'loadAllData' }) })
+    .then(r => r.json())
+    .then(data => {
+      app = data;
+      llenarSelects();
+      generarTalles();
+      updateStatus('ready');
+    })
+    .catch(e => {
+      showToast('Error de conexión', 'error');
+      updateStatus('error');
+    });
+});
+
+function llenarSelects() {
+  ['ing-articulo', 'ing-etapa', 'ing-responsable', 'sal-etapa', 'sal-responsable'].forEach(id => {
+    const select = document.getElementById(id);
+    select.innerHTML = '<option value="">-- Seleccionar --</option>';
+  });
+  
+  app.articulos.forEach(a => {
+    let opt = document.createElement('option');
+    opt.value = a;
+    opt.textContent = a;
+    document.getElementById('ing-articulo').appendChild(opt);
+  });
+  
+  app.etapas.forEach(e => {
+    document.getElementById('ing-etapa').appendChild(createOption(e, e));
+    document.getElementById('sal-etapa').appendChild(createOption(e, e));
+  });
+  
+  app.responsables.forEach(r => {
+    document.getElementById('ing-responsable').appendChild(createOption(r, r));
+    document.getElementById('sal-responsable').appendChild(createOption(r, r));
+  });
+  
+  let codigos = [...new Set(app.movimientos.map(m => m.codigoLinea))].sort();
+  codigos.forEach(c => {
+    document.getElementById('sal-codigo').appendChild(createOption(c, c));
+  });
+}
+
+function createOption(val, txt) {
+  let opt = document.createElement('option');
+  opt.value = val;
+  opt.textContent = txt;
+  return opt;
+}
+
+function generarTalles() {
+  const grid = document.getElementById('talles-grid');
+  grid.innerHTML = '';
+  app.talles.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'talle-input';
+    div.innerHTML = `<label>${t}</label><input type="number" id="talle-${t}" min="0" value="0">`;
+    grid.appendChild(div);
+  });
+}
+
+function updateColores() {
+  const art = document.getElementById('ing-articulo').value;
+  const sel = document.getElementById('ing-color');
+  sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+  
+  if (!art) return;
+  
+  fetch(URL, { method: 'POST', body: JSON.stringify({ action: 'getColoresPorArticulo', articulo: art }) })
+    .then(r => r.json())
+    .then(data => {
+      data.colores.forEach(c => sel.appendChild(createOption(c, c)));
+    });
+}
+
+function updateCodigo() {
+  const art = document.getElementById('ing-articulo').value;
+  const col = document.getElementById('ing-color').value;
+  
+  if (!art || !col) return;
+  
+  fetch(URL, { method: 'POST', body: JSON.stringify({ action: 'getCodigoLinea', articulo: art, color: col }) })
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('ing-codigo').value = data.codigo;
+    });
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function registrarIngreso() {
+  const cod = document.getElementById('ing-codigo').value;
+  const etapa = document.getElementById('ing-etapa').value;
+  const taller = document.getElementById('ing-taller').value;
+  const fecha = document.getElementById('ing-fecha').value;
+  const unid = document.getElementById('ing-unidades').value;
+  const resp = document.getElementById('ing-responsable').value;
+  const obs = document.getElementById('ing-obs').value;
+  
+  if (!cod || !etapa || !taller || !fecha || !unid || !resp) {
+    showToast('Completa campos requeridos', 'error');
+    return;
+  }
+  
+  const talles = {};
+  app.talles.forEach(t => {
+    const val = parseInt(document.getElementById(`talle-${t}`).value) || 0;
+    if (val > 0) talles[t] = val;
+  });
+  
+  const btn = event.target;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  
+  fetch(URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'registrarMovimiento',
+      formData: { codigoLinea: cod, etapa, taller, fechaIngreso: fecha, unidIngreso: parseInt(unid), responsable: resp, observaciones: obs, talles }
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    btn.disabled = false;
+    btn.innerHTML = '✓ Registrar';
+    if (data.success) {
+      showToast('✓ Registrado', 'success');
+      limpiarIngreso();
+    } else {
+      showToast(data.error || 'Error', 'error');
+    }
+  });
+}
+
+function limpiarIngreso() {
+  document.getElementById('ing-articulo').value = '';
+  document.getElementById('ing-color').value = '';
+  document.getElementById('ing-codigo').value = '';
+  document.getElementById('ing-etapa').value = '';
+  document.getElementById('ing-taller').value = '';
+  document.getElementById('ing-unidades').value = '';
+  document.getElementById('ing-obs').value = '';
+  document.getElementById('ing-responsable').value = '';
+  document.getElementById('ing-fecha').valueAsDate = new Date();
+  app.talles.forEach(t => {
+    document.getElementById(`talle-${t}`).value = '0';
+  });
+}
+
+function buscarMov() {
+  const cod = document.getElementById('sal-codigo').value;
+  const etapa = document.getElementById('sal-etapa').value;
+  
+  if (!cod || !etapa) {
+    document.getElementById('mov-info').classList.add('hidden');
+    return;
+  }
+  
+  const mov = app.movimientos.find(m => m.codigoLinea === cod && m.etapa === etapa && !m.fechaSalida);
+  
+  if (mov) {
+    document.getElementById('mov-articulo').textContent = mov.articulo || '-';
+    document.getElementById('mov-color').textContent = mov.color || '-';
+    document.getElementById('mov-unidades').textContent = mov.unidIngreso;
+    document.getElementById('mov-info').classList.remove('hidden');
+  } else {
+    document.getElementById('mov-info').classList.add('hidden');
+    showToast('Movimiento no encontrado', 'error');
+  }
+}
+
+function registrarSalida() {
+  const cod = document.getElementById('sal-codigo').value;
+  const etapa = document.getElementById('sal-etapa').value;
+  const fecha = document.getElementById('sal-fecha').value;
+  const unid = document.getElementById('sal-unidades').value;
+  const resp = document.getElementById('sal-responsable').value;
+  const talle = document.getElementById('sal-talle').value;
+  const obs = document.getElementById('sal-obs').value;
+  
+  if (!cod || !etapa || !fecha || !unid || !resp) {
+    showToast('Completa campos requeridos', 'error');
+    return;
+  }
+  
+  const btn = event.target;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  
+  fetch(URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'registrarSalida',
+      formData: { codigoLinea: cod, etapa, fechaSalida: fecha, unidSalida: parseInt(unid), talle, responsable: resp, observaciones: obs }
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    btn.disabled = false;
+    btn.innerHTML = '✓ Registrar';
+    if (data.success) {
+      showToast('✓ Registrado', 'success');
+      limpiarSalida();
+      location.reload();
+    } else {
+      showToast(data.error || 'Error', 'error');
+    }
+  });
+}
+
+function limpiarSalida() {
+  document.getElementById('sal-codigo').value = '';
+  document.getElementById('sal-etapa').value = '';
+  document.getElementById('sal-unidades').value = '';
+  document.getElementById('sal-fecha').valueAsDate = new Date();
+  document.getElementById('sal-talle').value = '';
+  document.getElementById('sal-obs').value = '';
+  document.getElementById('sal-responsable').value = '';
+  document.getElementById('mov-info').classList.add('hidden');
+}
+
+function updateStatus(s) {
+  const el = document.getElementById('status');
+  if (s === 'ready') el.innerHTML = '<div class="dot"></div><span>Conectado</span>';
+  else el.innerHTML = '<div class="dot error"></div><span>Error</span>';
+}
+
+function showToast(msg, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast show ' + type;
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
