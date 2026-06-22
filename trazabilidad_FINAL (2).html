@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trazabilidad</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui;background:#f5f5f5;color:#333;padding:20px}
+.shell{max-width:900px;margin:0 auto;background:#fff;border-radius:8px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+h1{margin-bottom:20px}
+.tabs{display:flex;gap:10px;margin-bottom:20px;border-bottom:1px solid #ddd}
+.tab{padding:10px 20px;cursor:pointer;border:none;background:none;font-size:14px}
+.tab.active{border-bottom:2px solid #333;font-weight:bold}
+.section{display:none}
+.section.active{display:block}
+.card{background:#f9f9f9;padding:15px;border-radius:6px;margin-bottom:15px}
+.card-title{font-size:12px;font-weight:bold;color:#666;text-transform:uppercase;margin-bottom:10px}
+label{display:block;font-size:12px;color:#666;margin-bottom:4px;margin-top:10px}
+input,select{width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:13px}
+input:focus,select:focus{outline:none;border-color:#333;box-shadow:0 0 0 2px rgba(0,0,0,0.1)}
+.btn{padding:10px 20px;background:#333;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px}
+.btn:hover{background:#555}
+.msg{padding:10px;margin-top:10px;border-radius:4px}
+.msg.error{background:#fee;color:#c00}
+.msg.success{background:#efe;color:#0c0}
+</style>
+</head>
+<body>
+<div class="shell">
+<h1>📦 Trazabilidad Producción</h1>
+<div class="tabs">
+<button class="tab active" onclick="tab('ingreso')">Ingreso</button>
+<button class="tab" onclick="tab('salida')">Salida</button>
+</div>
+
+<div id="ingreso" class="section active">
+<div class="card">
+<div class="card-title">Orden</div>
+<label>Artículo</label>
+<select id="art" onchange="cargarColores()"><option>--</option></select>
+<label>Color</label>
+<select id="col"><option>--</option></select>
+<label>OP Madre</label>
+<input type="text" id="op" placeholder="OP-0014">
+<label>Código (auto)</label>
+<input type="text" id="cod" readonly>
+</div>
+
+<div class="card">
+<div class="card-title">Detalles</div>
+<label>Etapa</label>
+<select id="etapa"><option>--</option></select>
+<label>Taller</label>
+<select id="taller"><option>--</option></select>
+<label>Fecha</label>
+<input type="date" id="fecha">
+<label>Unidades</label>
+<input type="number" id="und" min="1">
+</div>
+
+<div class="card">
+<div class="card-title">Talles</div>
+<div id="talles"></div>
+</div>
+
+<div class="card">
+<label>Responsable</label>
+<select id="resp"><option>--</option></select>
+<button class="btn" onclick="guardar()">Guardar</button>
+</div>
+<div id="msg"></div>
+</div>
+
+<div id="salida" class="section">
+<div class="card">
+<label>Código</label>
+<select id="scod"><option>--</option></select>
+<label>Etapa</label>
+<select id="setapa"><option>--</option></select>
+<label>Fecha</label>
+<input type="date" id="sfecha">
+<label>Unidades</label>
+<input type="number" id="sund">
+<label>Responsable</label>
+<select id="sresp"><option>--</option></select>
+<button class="btn" onclick="guardarSalida()">Guardar</button>
+</div>
+<div id="smsg"></div>
+</div>
+</div>
+
+<script>
+const URL="https://script.google.com/macros/s/AKfycbw-4AtOnMo-ymxPH9kixVscHW1gOAA2fJWlsdKDTVVgL1r8M6dutZV681xeo41YfjE/exec";
+let data={};
+
+window.addEventListener('DOMContentLoaded',()=>{
+document.getElementById('fecha').valueAsDate=new Date();
+document.getElementById('sfecha').valueAsDate=new Date();
+fetch(URL,{method:'POST',body:JSON.stringify({action:'loadAllData'})})
+.then(r=>r.json())
+.then(d=>{
+data=d;
+console.log('Data:',data);
+document.getElementById('art').innerHTML='<option>--</option>'+data.articulos.map(a=>'<option>'+a+'</option>').join('');
+document.getElementById('etapa').innerHTML='<option>--</option>'+data.etapas.map(e=>'<option>'+e+'</option>').join('');
+document.getElementById('taller').innerHTML='<option>--</option>'+data.talleres.map(t=>'<option>'+t+'</option>').join('');
+document.getElementById('resp').innerHTML='<option>--</option>'+data.responsables.map(r=>'<option>'+r+'</option>').join('');
+document.getElementById('setapa').innerHTML='<option>--</option>'+data.etapas.map(e=>'<option>'+e+'</option>').join('');
+document.getElementById('sresp').innerHTML='<option>--</option>'+data.responsables.map(r=>'<option>'+r+'</option>').join('');
+document.getElementById('talles').innerHTML=data.talles.map(t=>'<label>'+t+'<input type="number" id="t'+t+'" min="0" value="0"></label>').join('');
+})
+.catch(e=>console.error(e));
+});
+
+function tab(t){
+document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+document.getElementById(t).classList.add('active');
+event.target.classList.add('active');
+}
+
+function cargarColores(){
+const art=document.getElementById('art').value;
+if(!art){document.getElementById('col').innerHTML='<option>--</option>';return;}
+fetch(URL,{method:'POST',body:JSON.stringify({action:'getColoresPorArticulo',articulo:art})})
+.then(r=>r.json())
+.then(d=>{
+console.log('Colores:',d);
+document.getElementById('col').innerHTML='<option>--</option>'+(d.colores||[]).map(c=>'<option>'+c+'</option>').join('');
+});
+}
+
+function guardar(){
+const art=document.getElementById('art').value;
+const col=document.getElementById('col').value;
+const op=document.getElementById('op').value;
+const cod='OP-'+op.replace('OP-','')+'-'+col.split(' ')[0];
+const talles={};
+data.talles.forEach(t=>{const v=parseInt(document.getElementById('t'+t).value)||0;if(v>0)talles[t]=v;});
+fetch(URL,{
+method:'POST',
+body:JSON.stringify({
+action:'registrarMovimiento',
+formData:{codigoLinea:cod,opMadre:op,articulo:art,color:col,etapa:document.getElementById('etapa').value,taller:document.getElementById('taller').value,fechaIngreso:document.getElementById('fecha').value,unidIngreso:parseInt(document.getElementById('und').value),responsable:document.getElementById('resp').value,observaciones:'',talles:talles}
+})
+})
+.then(r=>r.json())
+.then(d=>{
+console.log('Response:',d);
+if(d.success){
+document.getElementById('msg').innerHTML='<div class="msg success">✓ Guardado</div>';
+}else{
+document.getElementById('msg').innerHTML='<div class="msg error">Error: '+(d.error||'desconocido')+'</div>';
+}
+});
+}
+
+function guardarSalida(){
+fetch(URL,{
+method:'POST',
+body:JSON.stringify({
+action:'registrarSalida',
+formData:{codigoLinea:document.getElementById('scod').value,etapa:document.getElementById('setapa').value,fechaSalida:document.getElementById('sfecha').value,unidSalida:parseInt(document.getElementById('sund').value),responsable:document.getElementById('sresp').value,observaciones:''}
+})
+})
+.then(r=>r.json())
+.then(d=>{
+if(d.success){
+document.getElementById('smsg').innerHTML='<div class="msg success">✓ Guardado</div>';
+}else{
+document.getElementById('smsg').innerHTML='<div class="msg error">Error: '+(d.error||'desconocido')+'</div>';
+}
+});
+}
+</script>
+</body>
+</html>
