@@ -56,157 +56,61 @@ input:focus,select:focus{border-color:var(--blue-mid);box-shadow:0 0 0 2px rgba(
   </div>
   
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('ingreso')">↓ Ingreso a Proceso</button>
-    <button class="tab" onclick="switchTab('salida')">↑ Salida de Proceso</button>
+    <button class="tab active" onclick="switchTab(event,'ingreso')">↓ Ingreso</button>
+    <button class="tab" onclick="switchTab(event,'salida')">↑ Salida</button>
   </div>
 
   <div id="tab-ingreso" class="section active">
     <div class="card">
-      <div class="card-title">1. Identificación de la Orden</div>
-      <div class="info-box">Completa artículo, color y N° OP Madre</div>
+      <div class="card-title">1. Orden</div>
       <div class="g3">
-        <div>
-          <label>Artículo *</label>
-          <select id="ing-articulo" onchange="updateColores()" required>
-            <option value="">-- Seleccionar --</option>
-          </select>
-        </div>
-        <div>
-          <label>Color *</label>
-          <select id="ing-color" onchange="updateCodigo()" required>
-            <option value="">-- Seleccionar --</option>
-          </select>
-        </div>
-        <div>
-          <label>N° OP Madre *</label>
-          <input type="text" id="ing-op-madre" placeholder="Ej: OP-0014" onchange="updateCodigo()" required>
-        </div>
+        <div><label>Artículo</label><select id="ing-art"><option>--</option></select></div>
+        <div><label>Color</label><select id="ing-col"><option>--</option></select></div>
+        <div><label>OP Madre</label><input type="text" id="ing-op"></div>
       </div>
-      <div class="g1">
-        <div>
-          <label>Código de Línea (Generado)</label>
-          <input type="text" id="ing-codigo" readonly>
-        </div>
+      <div class="g1"><div><label>Código</label><input type="text" id="ing-cod" readonly></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">2. Ingreso</div>
+      <div class="g2">
+        <div><label>Etapa</label><select id="ing-etapa"><option>--</option></select></div>
+        <div><label>Taller</label><select id="ing-tall"><option>--</option></select></div>
+      </div>
+      <div class="g2">
+        <div><label>Fecha</label><input type="date" id="ing-fec"></div>
+        <div><label>Unidades</label><input type="number" id="ing-und" min="1"></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-title">2. Datos del Ingreso</div>
-      <div class="g2">
-        <div>
-          <label>Etapa *</label>
-          <select id="ing-etapa" required>
-            <option value="">-- Seleccionar --</option>
-          </select>
-        </div>
-        <div>
-          <label>Taller/Ubicación *</label>
-          <select id="ing-taller" required>
-            <option value="">-- Seleccionar --</option>
-          </select>
-        </div>
-      </div>
-      <div class="g2">
-        <div>
-          <label>Fecha de Ingreso *</label>
-          <input type="date" id="ing-fecha" required>
-        </div>
-        <div>
-          <label>Unidades Totales *</label>
-          <input type="number" id="ing-unidades" min="1" required>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">3. Curva de Talles (Opcional)</div>
-      <div class="info-box">Especifica cuántas unidades de cada talle</div>
-      <div class="g1" id="talles-container"></div>
+      <div class="card-title">3. Talles</div>
+      <div class="g1" id="talles-grid"></div>
     </div>
 
     <div class="card">
       <div class="card-title">4. Responsable</div>
       <div class="g2">
-        <div>
-          <label>Responsable *</label>
-          <select id="ing-responsable" required>
-            <option value="">-- Seleccionar --</option>
-          </select>
-        </div>
-        <div style="align-self:flex-end">
-          <div style="display:flex;gap:8px">
-            <button class="btn" onclick="limpiarIngreso()">Limpiar</button>
-            <button class="btn primary" onclick="registrarIngreso()">✓ Registrar</button>
-          </div>
-        </div>
-      </div>
-      <div class="g1">
-        <div>
-          <label>Observaciones</label>
-          <input type="text" id="ing-obs" placeholder="Opcional">
-        </div>
+        <div><label>Responsable</label><select id="ing-resp"><option>--</option></select></div>
+        <div style="align-self:flex-end"><button class="btn primary" onclick="guardarIngreso()">Guardar</button></div>
       </div>
     </div>
   </div>
 
   <div id="tab-salida" class="section">
     <div class="card">
-      <div class="card-title">1. Seleccionar Movimiento</div>
+      <div class="card-title">Salida</div>
       <div class="g2">
-        <div>
-          <label>Código de Línea *</label>
-          <select id="sal-codigo" required>
-            <option value="">-- Seleccionar --</option>
-          </select>
-        </div>
-        <div>
-          <label>Etapa *</label>
-          <select id="sal-etapa" required>
-            <option value="">-- Seleccionar --</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">2. Datos de Salida</div>
-      <div class="g2">
-        <div>
-          <label>Fecha *</label>
-          <input type="date" id="sal-fecha" required>
-        </div>
-        <div>
-          <label>Unidades *</label>
-          <input type="number" id="sal-unidades" min="0" required>
-        </div>
-      </div>
-      <div class="g1">
-        <div>
-          <label>Talle (Opcional)</label>
-          <select id="sal-talle">
-            <option value="">-- Sin especificar --</option>
-          </select>
-        </div>
+        <div><label>Código</label><select id="sal-cod"><option>--</option></select></div>
+        <div><label>Etapa</label><select id="sal-etapa"><option>--</option></select></div>
       </div>
       <div class="g2">
-        <div>
-          <label>Responsable *</label>
-          <select id="sal-responsable" required>
-            <option value="">-- Seleccionar --</option>
-          </select>
-        </div>
-        <div style="align-self:flex-end">
-          <div style="display:flex;gap:8px">
-            <button class="btn" onclick="limpiarSalida()">Limpiar</button>
-            <button class="btn primary" onclick="registrarSalida()">✓ Registrar</button>
-          </div>
-        </div>
+        <div><label>Fecha</label><input type="date" id="sal-fec"></div>
+        <div><label>Unidades</label><input type="number" id="sal-und"></div>
       </div>
-      <div class="g1">
-        <div>
-          <label>Observaciones</label>
-          <input type="text" id="sal-obs" placeholder="Opcional">
-        </div>
+      <div class="g2">
+        <div><label>Responsable</label><select id="sal-resp"><option>--</option></select></div>
+        <div style="align-self:flex-end"><button class="btn primary" onclick="guardarSalida()">Guardar</button></div>
       </div>
     </div>
   </div>
@@ -217,293 +121,107 @@ input:focus,select:focus{border-color:var(--blue-mid);box-shadow:0 0 0 2px rgba(
 <script>
 const URL = "https://script.google.com/macros/s/AKfycbw-4AtOnMo-ymxPH9kixVscHW1gOAA2fJWlsdKDTVVgL1r8M6dutZV681xeo41YfjE/exec";
 
-let app = {
-  articulos: [],
-  etapas: [],
-  talleres: [],
-  responsables: [],
-  talles: [],
-  movimientos: []
-};
+let app = {articulos:[], etapas:[], talleres:[], responsables:[], talles:[]};
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('ing-fecha').valueAsDate = new Date();
-  document.getElementById('sal-fecha').valueAsDate = new Date();
+  document.getElementById('ing-fec').valueAsDate = new Date();
+  document.getElementById('sal-fec').valueAsDate = new Date();
   
-  fetch(URL, { 
-    method: 'POST', 
-    body: JSON.stringify({ action: 'loadAllData' }) 
-  })
-  .then(r => r.json())
-  .then(data => {
-    app = data;
-    llenarSelects();
-    generarTalles();
-    updateStatus('ready');
-  })
-  .catch(e => {
-    console.error('Error:', e);
-    showToast('Error de conexión: ' + e.message, 'error');
-    updateStatus('error');
-  });
+  fetch(URL, {method:'POST', body:JSON.stringify({action:'loadAllData'})})
+    .then(r => r.json())
+    .then(d => {app = d; init();})
+    .catch(e => {console.error(e); showToast('Error: '+e.message, 'error');});
 });
 
-function llenarSelects() {
-  document.getElementById('ing-articulo').innerHTML = '<option value="">-- Seleccionar --</option>';
-  app.articulos.forEach(a => {
-    const opt = document.createElement('option');
-    opt.value = a;
-    opt.textContent = a;
-    document.getElementById('ing-articulo').appendChild(opt);
-  });
+function init() {
+  document.getElementById('ing-art').innerHTML = '<option>--</option>' + app.articulos.map(a => '<option>'+a+'</option>').join('');
+  document.getElementById('ing-etapa').innerHTML = '<option>--</option>' + app.etapas.map(e => '<option>'+e+'</option>').join('');
+  document.getElementById('ing-tall').innerHTML = '<option>--</option>' + app.talleres.map(t => '<option>'+t+'</option>').join('');
+  document.getElementById('ing-resp').innerHTML = '<option>--</option>' + app.responsables.map(r => '<option>'+r+'</option>').join('');
+  document.getElementById('sal-etapa').innerHTML = '<option>--</option>' + app.etapas.map(e => '<option>'+e+'</option>').join('');
+  document.getElementById('sal-resp').innerHTML = '<option>--</option>' + app.responsables.map(r => '<option>'+r+'</option>').join('');
   
-  document.getElementById('ing-etapa').innerHTML = '<option value="">-- Seleccionar --</option>';
-  app.etapas.forEach(e => {
-    const opt = document.createElement('option');
-    opt.value = e;
-    opt.textContent = e;
-    document.getElementById('ing-etapa').appendChild(opt);
-  });
+  const grid = document.getElementById('talles-grid');
+  grid.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px">' + app.talles.map(t => '<div><label>'+t+'</label><input type="number" id="t-'+t+'" min="0" value="0"></div>').join('') + '</div>';
   
-  document.getElementById('ing-taller').innerHTML = '<option value="">-- Seleccionar --</option>';
-  app.talleres.forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t;
-    opt.textContent = t;
-    document.getElementById('ing-taller').appendChild(opt);
-  });
+  document.getElementById('ing-art').onchange = () => fetch(URL, {method:'POST', body:JSON.stringify({action:'getColoresPorArticulo',articulo:document.getElementById('ing-art').value})}).then(r => r.json()).then(d => {document.getElementById('ing-col').innerHTML = '<option>--</option>' + (d.colores || []).map(c => '<option>'+c+'</option>').join('');});
   
-  document.getElementById('ing-responsable').innerHTML = '<option value="">-- Seleccionar --</option>';
-  app.responsables.forEach(r => {
-    const opt = document.createElement('option');
-    opt.value = r;
-    opt.textContent = r;
-    document.getElementById('ing-responsable').appendChild(opt);
-  });
-  
-  document.getElementById('sal-etapa').innerHTML = '<option value="">-- Seleccionar --</option>';
-  app.etapas.forEach(e => {
-    const opt = document.createElement('option');
-    opt.value = e;
-    opt.textContent = e;
-    document.getElementById('sal-etapa').appendChild(opt);
-  });
-  
-  document.getElementById('sal-responsable').innerHTML = '<option value="">-- Seleccionar --</option>';
-  app.responsables.forEach(r => {
-    const opt = document.createElement('option');
-    opt.value = r;
-    opt.textContent = r;
-    document.getElementById('sal-responsable').appendChild(opt);
-  });
-  
-  document.getElementById('sal-talle').innerHTML = '<option value="">-- Sin especificar --</option>';
-  app.talles.forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t;
-    opt.textContent = t;
-    document.getElementById('sal-talle').appendChild(opt);
-  });
-}
-
-function generarTalles() {
-  const container = document.getElementById('talles-container');
-  container.innerHTML = '';
-  const grid = document.createElement('div');
-  grid.style.display = 'grid';
-  grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(100px, 1fr))';
-  grid.style.gap = '10px';
-  
-  app.talles.forEach(t => {
-    const div = document.createElement('div');
-    div.innerHTML = '<label style="margin-bottom:8px">' + t + '</label><input type="number" id="talle-' + t + '" min="0" value="0" style="padding:6px 8px">';
-    grid.appendChild(div);
-  });
-  container.appendChild(grid);
-}
-
-function updateColores() {
-  const art = document.getElementById('ing-articulo').value;
-  const sel = document.getElementById('ing-color');
-  sel.innerHTML = '<option value="">-- Seleccionar --</option>';
-  
-  if (!art) return;
-  
-  fetch(URL, { 
-    method: 'POST', 
-    body: JSON.stringify({ action: 'getColoresPorArticulo', articulo: art }) 
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.colores) {
-      data.colores.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
-        sel.appendChild(opt);
-      });
-    }
-  });
-}
-
-function updateCodigo() {
-  const art = document.getElementById('ing-articulo').value;
-  const col = document.getElementById('ing-color').value;
-  const opMadre = document.getElementById('ing-op-madre').value;
-  
-  if (opMadre && art && col) {
-    const numOP = opMadre.replace('OP-', '');
-    const codigo = 'OP-' + numOP + '-' + col.split(' ')[0];
-    document.getElementById('ing-codigo').value = codigo.toUpperCase();
-  }
-}
-
-function switchTab(tab) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-  event.target.classList.add('active');
-}
-
-function registrarIngreso() {
-  const cod = document.getElementById('ing-codigo').value;
-  const etapa = document.getElementById('ing-etapa').value;
-  const taller = document.getElementById('ing-taller').value;
-  const fecha = document.getElementById('ing-fecha').value;
-  const unid = document.getElementById('ing-unidades').value;
-  const resp = document.getElementById('ing-responsable').value;
-  const obs = document.getElementById('ing-obs').value;
-  
-  if (!cod || !etapa || !taller || !fecha || !unid || !resp) {
-    showToast('Completa campos requeridos', 'error');
-    return;
-  }
-  
-  const talles = {};
-  app.talles.forEach(t => {
-    const val = parseInt(document.getElementById('talle-' + t).value) || 0;
-    if (val > 0) talles[t] = val;
-  });
-  
-  const btn = event.target;
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>';
-  
-  fetch(URL, {
-    method: 'POST',
-    body: JSON.stringify({
-      action: 'registrarMovimiento',
-      formData: { 
-        codigoLinea: cod, 
-        etapa: etapa, 
-        taller: taller, 
-        fechaIngreso: fecha, 
-        unidIngreso: parseInt(unid), 
-        responsable: resp, 
-        observaciones: obs, 
-        talles: talles,
-        opMadre: document.getElementById('ing-op-madre').value,
-        articulo: document.getElementById('ing-articulo').value,
-        color: document.getElementById('ing-color').value
-      }
-    })
-  })
-  .then(r => r.json())
-  .then(data => {
-    btn.disabled = false;
-    btn.innerHTML = '✓ Registrar';
-    if (data.success) {
-      showToast('✓ Registrado', 'success');
-      limpiarIngreso();
-    } else {
-      showToast(data.error || 'Error', 'error');
-    }
-  });
-}
-
-function limpiarIngreso() {
-  document.getElementById('ing-articulo').value = '';
-  document.getElementById('ing-color').value = '';
-  document.getElementById('ing-op-madre').value = '';
-  document.getElementById('ing-codigo').value = '';
-  document.getElementById('ing-etapa').value = '';
-  document.getElementById('ing-taller').value = '';
-  document.getElementById('ing-unidades').value = '';
-  document.getElementById('ing-obs').value = '';
-  document.getElementById('ing-responsable').value = '';
-  document.getElementById('ing-fecha').valueAsDate = new Date();
-  app.talles.forEach(t => {
-    document.getElementById('talle-' + t).value = '0';
-  });
-}
-
-function registrarSalida() {
-  const cod = document.getElementById('sal-codigo').value;
-  const etapa = document.getElementById('sal-etapa').value;
-  const fecha = document.getElementById('sal-fecha').value;
-  const unid = document.getElementById('sal-unidades').value;
-  const resp = document.getElementById('sal-responsable').value;
-  const talle = document.getElementById('sal-talle').value;
-  const obs = document.getElementById('sal-obs').value;
-  
-  if (!cod || !etapa || !fecha || !unid || !resp) {
-    showToast('Completa campos requeridos', 'error');
-    return;
-  }
-  
-  const btn = event.target;
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>';
-  
-  fetch(URL, {
-    method: 'POST',
-    body: JSON.stringify({
-      action: 'registrarSalida',
-      formData: { 
-        codigoLinea: cod, 
-        etapa: etapa, 
-        fechaSalida: fecha, 
-        unidSalida: parseInt(unid), 
-        talle: talle, 
-        responsable: resp, 
-        observaciones: obs 
-      }
-    })
-  })
-  .then(r => r.json())
-  .then(data => {
-    btn.disabled = false;
-    btn.innerHTML = '✓ Registrar';
-    if (data.success) {
-      showToast('✓ Registrado', 'success');
-      limpiarSalida();
-    } else {
-      showToast(data.error || 'Error', 'error');
-    }
-  });
-}
-
-function limpiarSalida() {
-  document.getElementById('sal-codigo').value = '';
-  document.getElementById('sal-etapa').value = '';
-  document.getElementById('sal-unidades').value = '';
-  document.getElementById('sal-fecha').valueAsDate = new Date();
-  document.getElementById('sal-talle').value = '';
-  document.getElementById('sal-obs').value = '';
-  document.getElementById('sal-responsable').value = '';
+  updateStatus('ready');
 }
 
 function updateStatus(s) {
   const el = document.getElementById('status');
-  if (s === 'ready') el.innerHTML = '<div class="dot"></div><span>Conectado</span>';
-  else el.innerHTML = '<div class="dot error"></div><span>Error</span>';
+  el.innerHTML = s==='ready' ? '<div class="dot"></div><span>Conectado</span>' : '<div class="dot error"></div><span>Error</span>';
+}
+
+function switchTab(e, tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  e.target.classList.add('active');
+}
+
+function guardarIngreso() {
+  const art = document.getElementById('ing-art').value;
+  const col = document.getElementById('ing-col').value;
+  const op = document.getElementById('ing-op').value;
+  const cod = 'OP-' + op.replace('OP-','') + '-' + (col.split(' ')[0] || '');
+  
+  const talles = {};
+  app.talles.forEach(t => {
+    const v = parseInt(document.getElementById('t-'+t).value) || 0;
+    if(v > 0) talles[t] = v;
+  });
+  
+  fetch(URL, {
+    method:'POST',
+    body:JSON.stringify({
+      action:'registrarMovimiento',
+      formData:{
+        codigoLinea:cod,
+        opMadre:op,
+        articulo:art,
+        color:col,
+        etapa:document.getElementById('ing-etapa').value,
+        taller:document.getElementById('ing-tall').value,
+        fechaIngreso:document.getElementById('ing-fec').value,
+        unidIngreso:parseInt(document.getElementById('ing-und').value),
+        responsable:document.getElementById('ing-resp').value,
+        observaciones:'',
+        talles:talles
+      }
+    })
+  }).then(r => r.json()).then(d => {
+    if(d.success) {showToast('✓ Registrado', 'success'); document.getElementById('ing-und').value='';}
+    else showToast(d.error || 'Error', 'error');
+  });
+}
+
+function guardarSalida() {
+  fetch(URL, {
+    method:'POST',
+    body:JSON.stringify({
+      action:'registrarSalida',
+      formData:{
+        codigoLinea:document.getElementById('sal-cod').value,
+        etapa:document.getElementById('sal-etapa').value,
+        fechaSalida:document.getElementById('sal-fec').value,
+        unidSalida:parseInt(document.getElementById('sal-und').value),
+        responsable:document.getElementById('sal-resp').value,
+        observaciones:''
+      }
+    })
+  }).then(r => r.json()).then(d => {
+    if(d.success) showToast('✓ Registrado', 'success');
+    else showToast(d.error || 'Error', 'error');
+  });
 }
 
 function showToast(msg, type) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.className = 'toast show ' + type;
-  setTimeout(() => toast.classList.remove('show'), 3000);
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 </script>
 </body>
